@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: WorkforFilms Registration System
+# Parameters:
+#   Environment:
+#     Type: String
+
+Resources:
+
+  RegistrationAPI:
+    Type: AWS::Serverless::API
+    Properties:
+      # StageName: !Sub ${Environment}
+      DefinitionBody:
+        swagger: 2.0
+        info:
+          title:
+            Ref: AWS::StackName
+        x-amazon-apigateway-binary-media-types:
+          - '*/*'
+        paths: 
+          /test:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri:
+                  !Sub arn:aws:apigateway:${AWS:Region}:lambda:path/2015-03-31/functions/${Registration.Arn}/invocations
+                responses: {}
+
+  Registration:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub Registration
+      CodeUri: ./src
+      Handler: handler.handler
+      Runtime: python2.7
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+
+      Events:
+        MyEndpoint:
+          Type: Api 
+          Properties:
+            Path: /test
+            Method: post
+            RestApiId:
+              Ref: RegistrationAPI
+      # Environment:
+      #   Variables:
+      #     MyTableName: !Ref RegistrationTable
+  Registrationconfirm:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub Registrationconfirm
+      CodeUri: ./src
+      Handler: confirm.confirm
+      Runtime: python2.7
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+  
+  Registrationlogin:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub Registrationlogin
+      CodeUri: ./src
+      Handler: login.login
+      Runtime: python2.7
+      MemorySize: 128
+      Timeout: 3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+  Registrationforgotpass:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub Registrationforgotpass
+      CodeUri: ./src
+      Handler: forgot_password.forgot_password
+      Runtime: python2.7
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+  Registrationchangepass:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub Registrationchangepass
+      CodeUri: ./src
+      Handler: change_password.change_password
+      Runtime: python2.7
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+  Registrationforgotpassconfirm:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub Registrationforgotpass
+      CodeUri: ./src
+      Handler: forgot_password_confirm.forgot_password_confirm
+      Runtime: python2.7
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      
+ 
+  
+  # RegistrationTable:
+  #   Type: AWS::Serverless::SimpleTable
+  #   Properties:
+  #     PrimaryKey:
+  #       Name: RegistrationId
+  #       Type: String
+  #     ProvisionedThroughput:
+  #       ReadCapacityUnits: 1
+  #       WriteCapacityUnits: 1
+
+  
+
+   
+  
+
+# Outputs:
+#   endpoint:
+#     Description: The API Gateway endpoint for invoking the API
+#     Value: Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com' 
